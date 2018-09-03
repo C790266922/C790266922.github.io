@@ -5,20 +5,20 @@
   
 
   
-  <title>BP算法python实现 | </title>
+  <title>Back propagation through time | </title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="BP python 实现">
-<meta name="keywords" content="BP">
+  <meta name="description" content="BPTT公式推导">
+<meta name="keywords" content="deep learning,RNN">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BP算法python实现">
-<meta property="og:url" content="http://ccyan.xyz/2018/09/01/BP算法python实现/index.html">
+<meta property="og:title" content="Back propagation through time">
+<meta property="og:url" content="http://ccyan.xyz/2018/09/03/Back-propagation-through-time/index.html">
 <meta property="og:site_name">
-<meta property="og:description" content="BP python 实现">
+<meta property="og:description" content="BPTT公式推导">
 <meta property="og:locale" content="default">
 <meta property="og:updated_time" content="1970-01-01T00:00:00.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BP算法python实现">
-<meta name="twitter:description" content="BP python 实现">
+<meta name="twitter:title" content="Back propagation through time">
+<meta name="twitter:description" content="BPTT公式推导">
   
     <link rel="alternate" href="/atom.xml" title="" type="application/atom+xml">
   
@@ -67,10 +67,10 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-BP算法python实现" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Back-propagation-through-time" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/09/01/BP算法python实现/" class="article-date">
-  <time datetime="2018-09-01T02:25:42.000Z" itemprop="datePublished">2018-09-01</time>
+    <a href="/2018/09/03/Back-propagation-through-time/" class="article-date">
+  <time datetime="2018-09-03T07:48:26.000Z" itemprop="datePublished">2018-09-03</time>
 </a>
     
   <div class="article-category">
@@ -85,7 +85,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      BP算法python实现
+      Back propagation through time
     </h1>
   
 
@@ -93,13 +93,12 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>BP python 实现<br><a id="more"></a></p>
-<p>MNIST数据集上三隐层网络100轮迭代后还没完全收敛，准确率0.87</p>
+        <p>BPTT公式推导<br><a id="more"></a></p>
 <p><script src="http://code.jquery.com/jquery-2.0.0.js"></script><br>
 <iframe id="ipynb" marginheight="0" frameborder="0" width="924px" srcdoc="<!DOCTYPE html>
 <html>
 <head><meta charset='utf-8' />
-<title>bp_implementation</title><script src='https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js'></script>
+<title>bptt</title><script src='https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
 
 <style type='text/css'>
@@ -11869,324 +11868,107 @@ div#notebook {
   <div tabindex='-1' id='notebook' class='border-box-sizing'>
     <div class='container' id='notebook-container'>
 
-<div class='cell border-box-sizing code_cell rendered'>
-<div class='input'>
-<div class='prompt input_prompt'>In&nbsp;[1]:</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
 <div class='inner_cell'>
-    <div class='input_area'>
-<div class=' highlight hl-ipython3'><pre><span></span><span class='kn'>import</span> <span class='nn'>numpy</span> <span class='k'>as</span> <span class='nn'>np</span>
-
-<span class='k'>def</span> <span class='nf'>loss</span><span class='p'>(</span><span class='n'>pred</span><span class='p'>,</span> <span class='n'>y</span><span class='p'>):</span>
-    <span class='k'>return</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>sum</span><span class='p'>((</span><span class='n'>pred</span> <span class='o'>-</span> <span class='n'>y</span><span class='p'>)</span> <span class='o'>**</span> <span class='mi'>2</span><span class='p'>)</span>
-
-<span class='k'>def</span> <span class='nf'>loss_prime</span><span class='p'>(</span><span class='n'>pred</span><span class='p'>,</span> <span class='n'>y</span><span class='p'>):</span>
-    <span class='k'>return</span> <span class='n'>pred</span> <span class='o'>-</span> <span class='n'>y</span>
-
-<span class='k'>class</span> <span class='nc'>network</span><span class='p'>:</span>
-
-    <span class='k'>def</span> <span class='nf'>__init__</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>input_size</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>,</span> <span class='n'>num_layers</span><span class='p'>,</span> <span class='n'>output_size</span><span class='p'>,</span> <span class='n'>loss</span> <span class='o'>=</span> <span class='n'>loss</span><span class='p'>,</span> <span class='n'>loss_prime</span> <span class='o'>=</span> <span class='n'>loss_prime</span><span class='p'>):</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>input_size</span> <span class='o'>=</span> <span class='n'>input_size</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>hidden_size</span> <span class='o'>=</span> <span class='n'>hidden_size</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>num_layers</span> <span class='o'>=</span> <span class='n'>num_layers</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>output_size</span> <span class='o'>=</span> <span class='n'>output_size</span>
-        
-        <span class='c1'># activation function</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>sigmoid</span>
-        <span class='c1'># derivative of activation function</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation_prime</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>sigmoid_prime</span>
-        <span class='c1'># loss funciton</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>loss</span> <span class='o'>=</span> <span class='n'>loss</span>
-        <span class='c1'># derivative of loss function</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>loss_prime</span> <span class='o'>=</span> <span class='n'>loss_prime</span>
-        
-        <span class='c1'># input-&gt;hidden</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>w_ih</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='n'>input_size</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>)</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>b_ih</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='mi'>1</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>)</span>
-
-        <span class='c1'># hidden layers</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>W_hh</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='n'>hidden_size</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>_</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='n'>num_layers</span> <span class='o'>-</span> <span class='mi'>1</span><span class='p'>)]</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>B_hh</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='mi'>1</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>_</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='n'>num_layers</span> <span class='o'>-</span> <span class='mi'>1</span><span class='p'>)]</span>
-        
-        <span class='c1'># hidden-&gt;output</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>w_ho</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='n'>hidden_size</span><span class='p'>,</span> <span class='n'>output_size</span><span class='p'>)</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>b_ho</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>randn</span><span class='p'>(</span><span class='mi'>1</span><span class='p'>,</span> <span class='n'>output_size</span><span class='p'>)</span>
-
-        <span class='c1'># assemble w and b</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span> <span class='o'>=</span> <span class='p'>[</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>w_ih</span><span class='p'>]</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='o'>.</span><span class='n'>extend</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>W_hh</span><span class='p'>)</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='o'>.</span><span class='n'>append</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>w_ho</span><span class='p'>)</span>
-
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span> <span class='o'>=</span> <span class='p'>[</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>b_ih</span><span class='p'>]</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='o'>.</span><span class='n'>extend</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>B_hh</span><span class='p'>)</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='o'>.</span><span class='n'>append</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>b_ho</span><span class='p'>)</span>
-    
-    <span class='c1'># activation</span>
-    <span class='k'>def</span> <span class='nf'>sigmoid</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>x</span><span class='p'>):</span>
-        <span class='k'>return</span> <span class='mf'>1.0</span> <span class='o'>/</span> <span class='p'>(</span><span class='mi'>1</span> <span class='o'>+</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>exp</span><span class='p'>(</span><span class='o'>-</span><span class='n'>x</span><span class='p'>))</span>
-    
-    <span class='k'>def</span> <span class='nf'>sigmoid_prime</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>x</span><span class='p'>):</span>
-        <span class='k'>return</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>sigmoid</span><span class='p'>(</span><span class='n'>x</span><span class='p'>)</span> <span class='o'>*</span> <span class='p'>(</span><span class='mi'>1</span> <span class='o'>-</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>sigmoid</span><span class='p'>(</span><span class='n'>x</span><span class='p'>))</span>
-    
-    <span class='c1'># forward pass, calculate the output of the network</span>
-    <span class='k'>def</span> <span class='nf'>forward</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>a</span><span class='p'>):</span>
-        <span class='k'>for</span> <span class='n'>w</span><span class='p'>,</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>,</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='p'>):</span>
-            <span class='n'>a</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation</span><span class='p'>(</span><span class='n'>np</span><span class='o'>.</span><span class='n'>dot</span><span class='p'>(</span><span class='n'>a</span><span class='p'>,</span> <span class='n'>w</span><span class='p'>)</span> <span class='o'>+</span> <span class='n'>b</span><span class='p'>)</span>
-        <span class='k'>return</span> <span class='n'>a</span>
-
-    <span class='c1'># backpropagate error</span>
-    <span class='k'>def</span> <span class='nf'>backward</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>x</span><span class='p'>,</span> <span class='n'>y</span><span class='p'>):</span>
-        <span class='n'>delta_w</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>zeros</span><span class='p'>(</span><span class='n'>w</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>w</span> <span class='ow'>in</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>]</span>
-        <span class='n'>delta_b</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>zeros</span><span class='p'>(</span><span class='n'>b</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='p'>]</span>
-
-        <span class='c1'># get output of each layer in forward pass</span>
-        <span class='n'>out</span> <span class='o'>=</span> <span class='n'>x</span>
-        <span class='n'>outs</span> <span class='o'>=</span> <span class='p'>[]</span>
-        <span class='n'>zs</span> <span class='o'>=</span> <span class='p'>[]</span>
-        <span class='k'>for</span> <span class='n'>w</span><span class='p'>,</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>,</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='p'>):</span>
-            <span class='n'>z</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>dot</span><span class='p'>(</span><span class='n'>out</span><span class='p'>,</span> <span class='n'>w</span><span class='p'>)</span> <span class='o'>+</span> <span class='n'>b</span>
-            <span class='n'>zs</span><span class='o'>.</span><span class='n'>append</span><span class='p'>(</span><span class='n'>z</span><span class='p'>)</span>
-            <span class='n'>out</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation</span><span class='p'>(</span><span class='n'>z</span><span class='p'>)</span>
-            <span class='n'>outs</span><span class='o'>.</span><span class='n'>append</span><span class='p'>(</span><span class='n'>out</span><span class='p'>)</span>
-
-        <span class='c1'># δ of last layer</span>
-        <span class='n'>delta</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>loss_prime</span><span class='p'>(</span><span class='n'>outs</span><span class='p'>[</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>],</span> <span class='n'>y</span><span class='p'>)</span> <span class='o'>*</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation_prime</span><span class='p'>(</span><span class='n'>zs</span><span class='p'>[</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>])</span>
-
-        <span class='n'>delta_b</span><span class='p'>[</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>]</span> <span class='o'>=</span> <span class='n'>delta</span>
-        <span class='n'>delta_w</span><span class='p'>[</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>]</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>dot</span><span class='p'>(</span><span class='n'>outs</span><span class='p'>[</span><span class='o'>-</span><span class='mi'>2</span><span class='p'>]</span><span class='o'>.</span><span class='n'>transpose</span><span class='p'>(),</span> <span class='n'>delta</span><span class='p'>)</span>
-
-        <span class='k'>for</span> <span class='n'>i</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='mi'>2</span><span class='p'>,</span> <span class='nb'>len</span><span class='p'>(</span><span class='n'>delta_w</span><span class='p'>)):</span>
-            <span class='n'>delta</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>dot</span><span class='p'>(</span><span class='n'>delta</span><span class='p'>,</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>[</span><span class='o'>-</span><span class='n'>i</span><span class='o'>+</span><span class='mi'>1</span><span class='p'>]</span><span class='o'>.</span><span class='n'>transpose</span><span class='p'>())</span> <span class='o'>*</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>activation_prime</span><span class='p'>(</span><span class='n'>zs</span><span class='p'>[</span><span class='o'>-</span><span class='n'>i</span><span class='p'>])</span>
-            <span class='n'>delta_b</span><span class='p'>[</span><span class='o'>-</span><span class='n'>i</span><span class='p'>]</span> <span class='o'>=</span> <span class='n'>delta</span>
-            <span class='n'>delta_w</span><span class='p'>[</span><span class='o'>-</span><span class='n'>i</span><span class='p'>]</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>dot</span><span class='p'>(</span><span class='n'>outs</span><span class='p'>[</span><span class='o'>-</span><span class='n'>i</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>]</span><span class='o'>.</span><span class='n'>transpose</span><span class='p'>(),</span> <span class='n'>delta</span><span class='p'>)</span>
-
-        <span class='k'>return</span> <span class='n'>delta_w</span><span class='p'>,</span> <span class='n'>delta_b</span>
-
-    <span class='c1'># update w and b</span>
-    <span class='k'>def</span> <span class='nf'>update</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>batch</span><span class='p'>,</span> <span class='n'>lr</span><span class='p'>):</span>
-        <span class='n'>delta_w</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>zeros</span><span class='p'>(</span><span class='n'>w</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>w</span> <span class='ow'>in</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>]</span>
-        <span class='n'>delta_b</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>np</span><span class='o'>.</span><span class='n'>zeros</span><span class='p'>(</span><span class='n'>b</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>)</span> <span class='k'>for</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='p'>]</span>
-
-        <span class='k'>for</span> <span class='n'>x</span><span class='p'>,</span> <span class='n'>y</span> <span class='ow'>in</span> <span class='n'>batch</span><span class='p'>:</span>
-            <span class='n'>d_w</span><span class='p'>,</span> <span class='n'>d_b</span> <span class='o'>=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>backward</span><span class='p'>(</span><span class='n'>x</span><span class='p'>,</span> <span class='n'>y</span><span class='p'>)</span>
-            <span class='n'>delta_w</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>a</span> <span class='o'>+</span> <span class='n'>b</span> <span class='k'>for</span> <span class='n'>a</span><span class='p'>,</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='n'>delta_w</span><span class='p'>,</span> <span class='n'>d_w</span><span class='p'>)]</span>
-            <span class='n'>delta_b</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>a</span> <span class='o'>+</span> <span class='n'>b</span> <span class='k'>for</span> <span class='n'>a</span><span class='p'>,</span> <span class='n'>b</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='n'>delta_b</span><span class='p'>,</span> <span class='n'>d_b</span><span class='p'>)]</span>
-
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>w</span> <span class='o'>-</span> <span class='n'>lr</span> <span class='o'>*</span> <span class='n'>t</span> <span class='k'>for</span> <span class='n'>w</span><span class='p'>,</span> <span class='n'>t</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>W</span><span class='p'>,</span> <span class='n'>delta_w</span><span class='p'>)]</span>
-        <span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>b</span> <span class='o'>-</span> <span class='n'>lr</span> <span class='o'>*</span> <span class='n'>t</span> <span class='k'>for</span> <span class='n'>b</span><span class='p'>,</span> <span class='n'>t</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>B</span><span class='p'>,</span> <span class='n'>delta_b</span><span class='p'>)]</span>
-
-    <span class='c1'># SGD training</span>
-    <span class='k'>def</span> <span class='nf'>train</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>train_data</span><span class='p'>,</span> <span class='n'>epochs</span><span class='p'>,</span> <span class='n'>batch_size</span><span class='p'>,</span> <span class='n'>lr</span><span class='p'>):</span>
-        <span class='k'>for</span> <span class='n'>i</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='n'>epochs</span><span class='p'>):</span>
-            <span class='n'>np</span><span class='o'>.</span><span class='n'>random</span><span class='o'>.</span><span class='n'>shuffle</span><span class='p'>(</span><span class='n'>train_data</span><span class='p'>)</span>
-            <span class='n'>batches</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>train_data</span><span class='p'>[</span><span class='n'>t</span> <span class='p'>:</span> <span class='n'>t</span> <span class='o'>+</span> <span class='n'>batch_size</span><span class='p'>]</span> <span class='k'>for</span> <span class='n'>t</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='mi'>0</span><span class='p'>,</span> <span class='nb'>len</span><span class='p'>(</span><span class='n'>train_data</span><span class='p'>),</span> <span class='n'>batch_size</span><span class='p'>)]</span>
-
-            <span class='k'>for</span> <span class='n'>batch</span> <span class='ow'>in</span> <span class='n'>batches</span><span class='p'>:</span>
-                <span class='bp'>self</span><span class='o'>.</span><span class='n'>update</span><span class='p'>(</span><span class='n'>batch</span><span class='p'>,</span> <span class='n'>lr</span><span class='p'>)</span>
-
-            <span class='n'>loss</span> <span class='o'>=</span> <span class='mi'>0</span>
-            <span class='k'>for</span> <span class='n'>x</span><span class='p'>,</span> <span class='n'>y</span> <span class='ow'>in</span> <span class='n'>train_data</span><span class='p'>:</span>
-                <span class='n'>loss</span> <span class='o'>+=</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>loss</span><span class='p'>(</span><span class='bp'>self</span><span class='o'>.</span><span class='n'>forward</span><span class='p'>(</span><span class='n'>x</span><span class='p'>),</span> <span class='n'>y</span><span class='p'>)</span>
-            <span class='n'>loss</span> <span class='o'>/=</span> <span class='nb'>len</span><span class='p'>(</span><span class='n'>train_data</span><span class='p'>)</span>
-            
-            <span class='nb'>print</span><span class='p'>(</span><span class='s2'>&quot;Epoch </span><span class='si'>%d</span><span class='s2'> done, loss: </span><span class='si'>%f</span><span class='s2'>&quot;</span> <span class='o'>%</span> <span class='p'>(</span><span class='n'>i</span> <span class='o'>+</span> <span class='mi'>1</span><span class='p'>,</span> <span class='n'>loss</span><span class='p'>))</span>
-
-    <span class='c1'># predict</span>
-    <span class='k'>def</span> <span class='nf'>predict</span><span class='p'>(</span><span class='bp'>self</span><span class='p'>,</span> <span class='n'>x</span><span class='p'>):</span>
-        <span class='k'>return</span> <span class='bp'>self</span><span class='o'>.</span><span class='n'>forward</span><span class='p'>(</span><span class='n'>x</span><span class='p'>)</span>
-</pre></div>
-
+<div class='text_cell_render border-box-sizing rendered_html'>
+<h1 id='Back-propagation-through-time'>Back propagation through time</h1>
 </div>
 </div>
 </div>
-
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
 </div>
-<div class='cell border-box-sizing code_cell rendered'>
-<div class='input'>
-<div class='prompt input_prompt'>In&nbsp;[2]:</div>
 <div class='inner_cell'>
-    <div class='input_area'>
-<div class=' highlight hl-ipython3'><pre><span></span><span class='c1'># use it for handwriting digits classification</span>
-<span class='kn'>import</span> <span class='nn'>tensorflow</span> <span class='k'>as</span> <span class='nn'>tf</span>
-<span class='n'>mnist</span> <span class='o'>=</span> <span class='n'>tf</span><span class='o'>.</span><span class='n'>keras</span><span class='o'>.</span><span class='n'>datasets</span><span class='o'>.</span><span class='n'>mnist</span>
-
-<span class='k'>def</span> <span class='nf'>onehot</span><span class='p'>(</span><span class='n'>y</span><span class='p'>):</span>
-    <span class='n'>arr</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>zeros</span><span class='p'>([</span><span class='n'>y</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>[</span><span class='mi'>0</span><span class='p'>],</span> <span class='mi'>10</span><span class='p'>])</span>
-    <span class='k'>for</span> <span class='n'>i</span> <span class='ow'>in</span> <span class='nb'>range</span><span class='p'>(</span><span class='n'>y</span><span class='o'>.</span><span class='n'>shape</span><span class='p'>[</span><span class='mi'>0</span><span class='p'>]):</span>
-        <span class='n'>arr</span><span class='p'>[</span><span class='n'>i</span><span class='p'>][</span><span class='n'>y</span><span class='p'>[</span><span class='n'>i</span><span class='p'>]]</span> <span class='o'>=</span> <span class='mi'>1</span>
-    <span class='k'>return</span> <span class='n'>arr</span>
-
-<span class='p'>(</span><span class='n'>x_train</span><span class='p'>,</span> <span class='n'>y_train</span><span class='p'>),(</span><span class='n'>x_test</span><span class='p'>,</span> <span class='n'>y_test</span><span class='p'>)</span> <span class='o'>=</span> <span class='n'>mnist</span><span class='o'>.</span><span class='n'>load_data</span><span class='p'>()</span>
-<span class='n'>x_train</span><span class='p'>,</span> <span class='n'>x_test</span> <span class='o'>=</span> <span class='n'>x_train</span> <span class='o'>/</span> <span class='mf'>255.0</span><span class='p'>,</span> <span class='n'>x_test</span> <span class='o'>/</span> <span class='mf'>255.0</span>
-<span class='n'>x_train</span> <span class='o'>=</span> <span class='n'>x_train</span><span class='o'>.</span><span class='n'>reshape</span><span class='p'>([</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>,</span> <span class='mi'>28</span> <span class='o'>*</span> <span class='mi'>28</span><span class='p'>])</span>
-<span class='n'>x_test</span> <span class='o'>=</span> <span class='n'>x_test</span><span class='o'>.</span><span class='n'>reshape</span><span class='p'>([</span><span class='o'>-</span><span class='mi'>1</span><span class='p'>,</span> <span class='mi'>28</span> <span class='o'>*</span> <span class='mi'>28</span><span class='p'>])</span>
-<span class='n'>y_train</span> <span class='o'>=</span> <span class='n'>onehot</span><span class='p'>(</span><span class='n'>y_train</span><span class='p'>)</span>
-<span class='n'>y_test</span> <span class='o'>=</span> <span class='n'>onehot</span><span class='p'>(</span><span class='n'>y_test</span><span class='p'>)</span>
-
-<span class='n'>train_data</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>t</span> <span class='k'>for</span> <span class='n'>t</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='n'>x_train</span><span class='p'>,</span> <span class='n'>y_train</span><span class='p'>)]</span>
-<span class='n'>test_data</span> <span class='o'>=</span> <span class='p'>[</span><span class='n'>t</span> <span class='k'>for</span> <span class='n'>t</span> <span class='ow'>in</span> <span class='nb'>zip</span><span class='p'>(</span><span class='n'>x_test</span><span class='p'>,</span> <span class='n'>y_test</span><span class='p'>)]</span>
-
-<span class='n'>input_size</span> <span class='o'>=</span> <span class='mi'>28</span> <span class='o'>*</span> <span class='mi'>28</span>
-<span class='n'>hidden_size</span> <span class='o'>=</span> <span class='mi'>100</span>
-<span class='n'>num_layers</span> <span class='o'>=</span> <span class='mi'>3</span>
-<span class='n'>output_size</span> <span class='o'>=</span> <span class='mi'>10</span>
-
-<span class='n'>net</span> <span class='o'>=</span> <span class='n'>network</span><span class='p'>(</span><span class='n'>input_size</span><span class='p'>,</span> <span class='n'>hidden_size</span><span class='p'>,</span> <span class='n'>num_layers</span><span class='p'>,</span> <span class='n'>output_size</span><span class='p'>)</span>
-
-<span class='n'>lr</span> <span class='o'>=</span> <span class='mf'>0.005</span>
-<span class='n'>epochs</span> <span class='o'>=</span> <span class='mi'>100</span>
-<span class='n'>batch_size</span> <span class='o'>=</span> <span class='mi'>100</span>
-
-<span class='n'>net</span><span class='o'>.</span><span class='n'>train</span><span class='p'>(</span><span class='n'>train_data</span><span class='p'>,</span> <span class='n'>epochs</span><span class='p'>,</span> <span class='n'>batch_size</span><span class='p'>,</span> <span class='n'>lr</span><span class='p'>)</span>
-
-<span class='k'>def</span> <span class='nf'>softmax</span><span class='p'>(</span><span class='n'>x</span><span class='p'>):</span>
-    <span class='n'>exp</span> <span class='o'>=</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>exp</span><span class='p'>(</span><span class='n'>x</span><span class='p'>)</span>
-    <span class='k'>return</span> <span class='n'>exp</span> <span class='o'>/</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>sum</span><span class='p'>(</span><span class='n'>exp</span><span class='p'>)</span>
-
-<span class='n'>correct</span> <span class='o'>=</span> <span class='mi'>0</span>
-<span class='k'>for</span> <span class='n'>x</span><span class='p'>,</span> <span class='n'>y</span> <span class='ow'>in</span> <span class='n'>test_data</span><span class='p'>:</span>
-    <span class='n'>ret</span> <span class='o'>=</span> <span class='n'>net</span><span class='o'>.</span><span class='n'>forward</span><span class='p'>(</span><span class='n'>x</span><span class='p'>)</span>
-    <span class='n'>pred</span> <span class='o'>=</span> <span class='n'>softmax</span><span class='p'>(</span><span class='n'>ret</span><span class='p'>)</span>
-    <span class='k'>if</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>argmax</span><span class='p'>(</span><span class='n'>pred</span><span class='p'>)</span> <span class='o'>==</span> <span class='n'>np</span><span class='o'>.</span><span class='n'>argmax</span><span class='p'>(</span><span class='n'>y</span><span class='p'>):</span>
-        <span class='n'>correct</span> <span class='o'>+=</span> <span class='mi'>1</span>
-
-<span class='n'>acc</span> <span class='o'>=</span> <span class='nb'>float</span><span class='p'>(</span><span class='n'>correct</span><span class='p'>)</span> <span class='o'>/</span> <span class='nb'>len</span><span class='p'>(</span><span class='n'>test_data</span><span class='p'>)</span>
-<span class='nb'>print</span><span class='p'>(</span><span class='s1'>&#39;test accuracy: &#39;</span><span class='p'>,</span> <span class='n'>acc</span><span class='p'>)</span>
-</pre></div>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>以下是典型的RNN展开结构</p>
+<p><img src='./rnn.png' alt=''></p>
 
 </div>
 </div>
 </div>
-
-<div class='output_wrapper'>
-<div class='output'>
-
-
-<div class='output_area'>
-
-<div class='prompt'></div>
-
-
-<div class='output_subarea output_stream output_stderr output_text'>
-<pre>/usr/local/Cellar/python/3.6.5_1/Frameworks/Python.framework/Versions/3.6/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: compiletime version 3.5 of module &#39;tensorflow.python.framework.fast_tensor_util&#39; does not match runtime version 3.6
-  return f(*args, **kwds)
-</pre>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
 </div>
-</div>
-
-<div class='output_area'>
-
-<div class='prompt'></div>
-
-
-<div class='output_subarea output_stream output_stdout output_text'>
-<pre>Epoch 1 done, loss: 0.704719
-Epoch 2 done, loss: 0.583749
-Epoch 3 done, loss: 0.511666
-Epoch 4 done, loss: 0.470543
-Epoch 5 done, loss: 0.441834
-Epoch 6 done, loss: 0.421105
-Epoch 7 done, loss: 0.404998
-Epoch 8 done, loss: 0.391350
-Epoch 9 done, loss: 0.379969
-Epoch 10 done, loss: 0.371235
-Epoch 11 done, loss: 0.362998
-Epoch 12 done, loss: 0.355650
-Epoch 13 done, loss: 0.349786
-Epoch 14 done, loss: 0.344725
-Epoch 15 done, loss: 0.338462
-Epoch 16 done, loss: 0.334194
-Epoch 17 done, loss: 0.329972
-Epoch 18 done, loss: 0.325825
-Epoch 19 done, loss: 0.322230
-Epoch 20 done, loss: 0.319560
-Epoch 21 done, loss: 0.316571
-Epoch 22 done, loss: 0.312692
-Epoch 23 done, loss: 0.312369
-Epoch 24 done, loss: 0.306886
-Epoch 25 done, loss: 0.305076
-Epoch 26 done, loss: 0.302663
-Epoch 27 done, loss: 0.300409
-Epoch 28 done, loss: 0.298020
-Epoch 29 done, loss: 0.296661
-Epoch 30 done, loss: 0.293641
-Epoch 31 done, loss: 0.291818
-Epoch 32 done, loss: 0.290635
-Epoch 33 done, loss: 0.289215
-Epoch 34 done, loss: 0.286512
-Epoch 35 done, loss: 0.284045
-Epoch 36 done, loss: 0.283118
-Epoch 37 done, loss: 0.281624
-Epoch 38 done, loss: 0.280002
-Epoch 39 done, loss: 0.279126
-Epoch 40 done, loss: 0.276736
-Epoch 41 done, loss: 0.275551
-Epoch 42 done, loss: 0.275414
-Epoch 43 done, loss: 0.273392
-Epoch 44 done, loss: 0.272100
-Epoch 45 done, loss: 0.272005
-Epoch 46 done, loss: 0.269823
-Epoch 47 done, loss: 0.268203
-Epoch 48 done, loss: 0.267103
-Epoch 49 done, loss: 0.266402
-Epoch 50 done, loss: 0.265261
-Epoch 51 done, loss: 0.264148
-Epoch 52 done, loss: 0.262488
-Epoch 53 done, loss: 0.261885
-Epoch 54 done, loss: 0.261287
-Epoch 55 done, loss: 0.260249
-Epoch 56 done, loss: 0.258727
-Epoch 57 done, loss: 0.259320
-Epoch 58 done, loss: 0.258441
-Epoch 59 done, loss: 0.255936
-Epoch 60 done, loss: 0.255033
-Epoch 61 done, loss: 0.254648
-Epoch 62 done, loss: 0.254665
-Epoch 63 done, loss: 0.252766
-Epoch 64 done, loss: 0.252476
-Epoch 65 done, loss: 0.251868
-Epoch 66 done, loss: 0.250434
-Epoch 67 done, loss: 0.249634
-Epoch 68 done, loss: 0.248586
-Epoch 69 done, loss: 0.248856
-Epoch 70 done, loss: 0.247162
-Epoch 71 done, loss: 0.246659
-Epoch 72 done, loss: 0.246795
-Epoch 73 done, loss: 0.245512
-Epoch 74 done, loss: 0.244162
-Epoch 75 done, loss: 0.244076
-Epoch 76 done, loss: 0.242934
-Epoch 77 done, loss: 0.242448
-Epoch 78 done, loss: 0.242757
-Epoch 79 done, loss: 0.241167
-Epoch 80 done, loss: 0.241119
-Epoch 81 done, loss: 0.239771
-Epoch 82 done, loss: 0.239971
-Epoch 83 done, loss: 0.238865
-Epoch 84 done, loss: 0.238171
-Epoch 85 done, loss: 0.237418
-Epoch 86 done, loss: 0.237751
-Epoch 87 done, loss: 0.236366
-Epoch 88 done, loss: 0.236456
-Epoch 89 done, loss: 0.235065
-Epoch 90 done, loss: 0.234652
-Epoch 91 done, loss: 0.234355
-Epoch 92 done, loss: 0.233431
-Epoch 93 done, loss: 0.232880
-Epoch 94 done, loss: 0.233443
-Epoch 95 done, loss: 0.231940
-Epoch 96 done, loss: 0.232182
-Epoch 97 done, loss: 0.231238
-Epoch 98 done, loss: 0.229988
-Epoch 99 done, loss: 0.222784
-Epoch 100 done, loss: 0.177282
-test accuracy:  0.8789
-</pre>
-</div>
-</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>梯度下降更新公式：
+$$U = U - \eta\frac{\partial C}{\partial U}\tag1$$</p>
+<p>$$V = V - \eta\frac{\partial C}{\partial V}\tag2$$</p>
+<p>$$W = W - \eta\frac{\partial C}{\partial W}\tag3$$</p>
+<p>$U, V, W$是参数矩阵，目标即为求损失函数$C$关于这三个矩阵的偏导</p>
+<p>在$t$时刻，RNN输入为$s^*_t$:
+$$s^*_t = Ux_t + Ws_{t-1}\tag4$$</p>
+<p>$s^*_t$经过激活函数$\sigma$得到$t$时刻状态$s_t$:
+$$s_t = \sigma(s^*_t) = \sigma(Ux_t + Ws_{t-1})\tag5$$</p>
+<p>$s_t$经过矩阵$V$变换得到$t$时刻输出$o_t$:
+$$o_t = Vs_t\tag6$$</p>
 
 </div>
 </div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>$t$时刻：
+$$\frac{\partial C_t}{\partial V} = \frac{\partial C_t}{\partial Vs_t} \times \frac{\partial Vs_t}{\partial V} = \frac{\partial C_t}{\partial o_t} \times {s_t}^T\tag7$$</p>
+<p>而：
+$$C = \sum_{t=1}^{n}C_t\tag8$$</p>
+<p>故：
+$$\frac{\partial C}{\partial V} = \sum_{t=1}^{n}\frac{\partial C_t}{\partial o_t} \times {s_t}^T\tag9$$</p>
 
+</div>
+</div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>$\frac{\partial C}{\partial U}$与$\frac{\partial C}{\partial W}$:</p>
+<p>$$\frac{\partial C_t}{\partial U} = \sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times \frac{\partial s^*_k}{\partial U} = \sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times x^T_k\tag{10}$$</p>
+<p>$$\frac{\partial C_t}{\partial W} = \sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times \frac{\partial s^*_k}{\partial W} = \sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times s^T_{k-1}\tag{11}$$</p>
+
+</div>
+</div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>故：
+$$\frac{\partial C}{\partial U} = \sum_{t=1}^{n}\sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times x^T_k\tag{12}$$</p>
+<p>$$\frac{\partial C}{\partial W} = \sum_{t=1}^{n}\sum_{k=1}^{t}\frac{\partial C_t}{\partial s^*_k} \times s^T_{k-1}\tag{13}$$</p>
+
+</div>
+</div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>$n$为记忆的时间步数</p>
+
+</div>
+</div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>现在目标为$\frac{\partial C_t}{\partial s^*_k}$:</p>
+<p>$$\frac{\partial C_t}{\partial s^*_t} = \frac{\partial s_t}{\partial s^*_t}(\frac{\partial Vs_t}{\partial s_t} \times \frac{\partial C_t}{\partial Vs_t}) = \sigma^\prime(s^*_t)(V^T \times \frac{\partial C_t}{\partial o_t})\tag{14}$$</p>
+<p>$$\frac{\partial C_t}{\partial s^*_{k-1}} = \frac{\partial s^*_k}{\partial s^*_{k-1}} \times \frac{\partial C_t}{\partial s^*_k} = \sigma^\prime(s^*_{k-1})(W^T \times \frac{\partial C_t}{\partial s^*_k})\tag{15}$$</p>
+
+</div>
+</div>
+</div>
+<div class='cell border-box-sizing text_cell rendered'><div class='prompt input_prompt'>
+</div>
+<div class='inner_cell'>
+<div class='text_cell_render border-box-sizing rendered_html'>
+<p>由14式得出$t$时刻$\frac{\partial C_t}{\partial s^*_t}$，根据15式将此误差在时间通道上向后传播，再结合1， 3， 12，13式更新$U, W$；$V$根据2，9式更新</p>
+
+</div>
+</div>
 </div>
     </div>
   </div>
@@ -12212,10 +11994,10 @@ document.getElementById('ipynb').height=$("#ipynb").contents().find("#notebook")
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ccyan.xyz/2018/09/01/BP算法python实现/" data-id="cjllzqo1p0005nhoyxgel7vd2" class="article-share-link">Share</a>
+      <a data-url="http://ccyan.xyz/2018/09/03/Back-propagation-through-time/" data-id="cjllzqo170001nhoynqwb5v7t" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BP/">BP</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RNN/">RNN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/deep-learning/">deep learning</a></li></ul>
 
     </footer>
   </div>
@@ -12223,19 +12005,10 @@ document.getElementById('ipynb').height=$("#ipynb").contents().find("#notebook")
     
 <nav id="article-nav">
   
-    <a href="/2018/09/03/Back-propagation-through-time/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          Back propagation through time
-        
-      </div>
-    </a>
   
-  
-    <a href="/2018/08/31/Back-Propagation/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2018/09/01/BP算法python实现/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Back Propagation</div>
+      <div class="article-nav-title">BP算法python实现</div>
     </a>
   
 </nav>
