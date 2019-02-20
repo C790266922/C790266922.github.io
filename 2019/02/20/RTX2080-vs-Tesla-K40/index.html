@@ -5,15 +5,26 @@
   
 
   
-  <title>Archives | </title>
+  <title>RTX2080 vs Tesla K40 | </title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title">
-<meta property="og:url" content="http://ccyan.xyz/archives/index.html">
+  <meta name="description" content="RTX2080, Tesla K40m性能对比">
+<meta name="keywords" content="deep learning,GPU">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RTX2080 vs Tesla K40">
+<meta property="og:url" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/index.html">
 <meta property="og:site_name">
+<meta property="og:description" content="RTX2080, Tesla K40m性能对比">
 <meta property="og:locale" content="default">
+<meta property="og:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/rtx2080_info.png">
+<meta property="og:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/k40_info.png">
+<meta property="og:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/rtx2080.png">
+<meta property="og:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/double_k40.png">
+<meta property="og:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/single_k40.png">
+<meta property="og:updated_time" content="2019-02-20T09:21:42.553Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title">
+<meta name="twitter:title" content="RTX2080 vs Tesla K40">
+<meta name="twitter:description" content="RTX2080, Tesla K40m性能对比">
+<meta name="twitter:image" content="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/rtx2080_info.png">
   
     <link rel="alternate" href="/atom.xml" title="" type="application/atom+xml">
   
@@ -62,220 +73,75 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2019" class="archive-year">2019</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2019/02/20/RTX2080-vs-Tesla-K40/" class="archive-article-date">
-  <time datetime="2019-02-20T08:39:07.000Z" itemprop="datePublished">Feb 20</time>
+        <section id="main"><article id="post-RTX2080-vs-Tesla-K40" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/20/RTX2080-vs-Tesla-K40/" class="article-date">
+  <time datetime="2019-02-20T08:39:07.000Z" itemprop="datePublished">2019-02-20</time>
 </a>
-      
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Deep-learning/">Deep learning</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2019/02/20/RTX2080-vs-Tesla-K40/">RTX2080 vs Tesla K40</a>
+    <h1 class="article-title" itemprop="name">
+      RTX2080 vs Tesla K40
     </h1>
   
 
-    </header>
-  </div>
-</article>
-  
+      </header>
     
-    
+    <div class="article-entry" itemprop="articleBody">
       
-        </div></section>
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2018" class="archive-year">2018</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/11/23/Ethereum-MPT/" class="archive-article-date">
-  <time datetime="2018-11-23T11:33:45.000Z" itemprop="datePublished">Nov 23</time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/11/23/Ethereum-MPT/">Ethereum MPT</a>
-    </h1>
-  
+        <p>RTX2080, Tesla K40m性能对比</p>
+<a id="more"></a>
+<p>最近为准备比赛，一直在摆弄、训练一些超分辨率模型，起初在装有2张K40m的计算节点上训练原始ESRGAN，然后简单调整了一下ESRGAN得到一个新模型，放在另一个装有1张RTX2080的计算节点上训练，同样的训练参数和数据集，发现训练速度相差近3倍，突然有那么一瞬间感觉自己的模型666，后来为了探究一下到底是我的模型6还是RTX2080比较6，做了一个简单的对比实验：</p>
+<p>测试用的是原始ESRGAN，相同训练数据和训练参数，节点配置如下：</p>
+<p>RTX2080 node:</p>
+<p><img src="/2019/02/20/RTX2080-vs-Tesla-K40/rtx2080_info.png" alt=""></p>
+<p>Tesla K40 node:</p>
+<p><img src="/2019/02/20/RTX2080-vs-Tesla-K40/k40_info.png" alt=""></p>
+<p>结果：</p>
+<p>RTX2080：每200个step用时2分钟左右</p>
+<p><img src="/2019/02/20/RTX2080-vs-Tesla-K40/rtx2080.png" alt=""></p>
+<p>Tesla K40m双卡：每200个step用时6分钟左右</p>
+<p><img src="/2019/02/20/RTX2080-vs-Tesla-K40/double_k40.png" alt=""></p>
+<p>Tesla K40m单卡：每200个step用时20分钟左右</p>
+<p><img src="/2019/02/20/RTX2080-vs-Tesla-K40/single_k40.png" alt=""></p>
+<p>所有训练过程都是比较稳定的，同一次训练中每200个step用时都非常接近</p>
+<p>RTX2080简直吊打K40</p>
+<p>还是2080比较6 :)</p>
 
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/11/23/Ethereum笔记/" class="archive-article-date">
-  <time datetime="2018-11-23T11:33:45.000Z" itemprop="datePublished">Nov 23</time>
-</a>
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/11/23/Ethereum笔记/">Ethereum 笔记</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/09/06/BPTT实现/" class="archive-article-date">
-  <time datetime="2018-09-06T14:57:28.000Z" itemprop="datePublished">Sep 6</time>
-</a>
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ccyan.xyz/2019/02/20/RTX2080-vs-Tesla-K40/" data-id="cjsczny6s000clpoykrcvy243" class="article-share-link">Share</a>
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/09/06/BPTT实现/">BPTT实现</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/09/03/Back-propagation-through-time/" class="archive-article-date">
-  <time datetime="2018-09-03T07:48:26.000Z" itemprop="datePublished">Sep 3</time>
-</a>
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/09/03/Back-propagation-through-time/">Back propagation through time</a>
-    </h1>
-  
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GPU/">GPU</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/deep-learning/">deep learning</a></li></ul>
 
-    </header>
+    </footer>
   </div>
-</article>
   
     
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/09/01/BP算法python实现/" class="archive-article-date">
-  <time datetime="2018-09-01T02:25:42.000Z" itemprop="datePublished">Sep 1</time>
-</a>
-      
+<nav id="article-nav">
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/09/01/BP算法python实现/">BP算法python实现</a>
-    </h1>
   
+    <a href="/2018/11/23/Ethereum-MPT/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Ethereum MPT</div>
+    </a>
+  
+</nav>
 
-    </header>
-  </div>
+  
 </article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/08/31/Back-Propagation/" class="archive-article-date">
-  <time datetime="2018-08-31T11:29:07.000Z" itemprop="datePublished">Aug 31</time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/08/31/Back-Propagation/">Back Propagation</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/06/10/叔本华《人生的智慧》-基本的划分/" class="archive-article-date">
-  <time datetime="2018-06-10T15:03:40.000Z" itemprop="datePublished">Jun 10</time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/06/10/叔本华《人生的智慧》-基本的划分/">叔本华《人生的智慧》--基本的划分</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/06/05/Terminal字典/" class="archive-article-date">
-  <time datetime="2018-06-05T10:59:03.000Z" itemprop="datePublished">Jun 5</time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/06/05/Terminal字典/">Terminal字典</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/06/01/hell-world/" class="archive-article-date">
-  <time datetime="2018-06-01T10:19:32.000Z" itemprop="datePublished">Jun 1</time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/06/01/hell-world/">Hell World:)</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
-  
 
 
 </section>
