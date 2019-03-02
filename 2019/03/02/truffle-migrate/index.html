@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>truffle migrate | </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="truffle migrate做了什么？">
+<meta name="keywords" content="Ethereum,Blockchain">
+<meta property="og:type" content="article">
+<meta property="og:title" content="truffle migrate">
+<meta property="og:url" content="http://ccyan.xyz/2019/03/02/truffle-migrate/index.html">
+<meta property="og:site_name">
+<meta property="og:description" content="truffle migrate做了什么？">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-03-02T13:42:28.822Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="truffle migrate">
+<meta name="twitter:description" content="truffle migrate做了什么？">
+  
+    <link rel="alternate" href="/atom.xml" title="" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/logo.jpg">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo"></a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://ccyan.xyz"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-truffle-migrate" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/03/02/truffle-migrate/" class="article-date">
+  <time datetime="2019-03-02T12:00:03.000Z" itemprop="datePublished">2019-03-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Blockchain/">Blockchain</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      truffle migrate
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>truffle migrate做了什么？</p>
+<a id="more"></a>
+<p>Truffle 是目前以太坊合约开发中最常用的框架，写好合约、部署脚本和配置文件，一句truffle migrate就能够直接完成合约部署，但是truffle migrate背后发生了什么？为什么部署脚本都是数字开头？今天细看了一下，解决了这些疑惑，记录一下</p>
+<p>先简单说说truffle的使用</p>
+<h3 id="1-Truffle-init"><a href="#1-Truffle-init" class="headerlink" title="1.Truffle init"></a>1.Truffle init</h3><p>Truffle init会将当前文件夹初始化为一个Truffle项目文件夹，结构如下：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── contracts</span><br><span class="line">│   └── Migrations.sol</span><br><span class="line">├── migrations</span><br><span class="line">│   └── <span class="number">1</span>_initial_migration.js</span><br><span class="line">├── test</span><br><span class="line">└── truffle-config.js</span><br></pre></td></tr></table></figure>
+<p>其中Migrations.sol用于记录当前执行到了第几个部署脚本，1_initial_migration.js是Migrations.sol的部署脚本。Migrations.sol内容如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity &gt;=<span class="number">0.4</span><span class="number">.21</span> &lt;<span class="number">0.6</span><span class="number">.0</span>;</span><br><span class="line"></span><br><span class="line">contract Migrations &#123;</span><br><span class="line">  address public owner;</span><br><span class="line">  uint public last_completed_migration;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() public &#123;</span><br><span class="line">    owner = msg.sender;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  modifier restricted() &#123;</span><br><span class="line">    <span class="keyword">if</span> (msg.sender == owner) _;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">setCompleted</span>(<span class="params">uint completed</span>) <span class="title">public</span> <span class="title">restricted</span> </span>&#123;</span><br><span class="line">    last_completed_migration = completed;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">upgrade</span>(<span class="params">address new_address</span>) <span class="title">public</span> <span class="title">restricted</span> </span>&#123;</span><br><span class="line">    Migrations upgraded = Migrations(new_address);</span><br><span class="line">    upgraded.setCompleted(last_completed_migration);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要字段为last_completed_migration，记录了上一个执行完成的部署脚本的编号。truffle migrate时会执行migrations文件夹下的部署脚本，每执行完一个部署脚本之后都会调用Migrations.sol合约的setCompleted方法，将last_completed_migration更新为部署脚本开头的数字。</p>
+<h3 id="2-编写自己的合约"><a href="#2-编写自己的合约" class="headerlink" title="2.编写自己的合约"></a>2.编写自己的合约</h3><p>现在我们写一个简单的合约Store.sol，然后加入对应得部署脚本，现在文件夹结构如下：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── contracts</span><br><span class="line">│   ├── Migrations.sol</span><br><span class="line">│   └── Store.sol</span><br><span class="line">├── migrations</span><br><span class="line">│   ├── <span class="number">1</span>_initial_migration.js</span><br><span class="line">│   └── <span class="number">2</span>_depoly_store.js</span><br><span class="line">├── test</span><br><span class="line">└── truffle-config.js</span><br></pre></td></tr></table></figure>
+<p>合约内容：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity &gt;=<span class="number">0.4</span><span class="number">.21</span> &lt;<span class="number">0.6</span><span class="number">.0</span>;</span><br><span class="line"></span><br><span class="line">contract Store &#123;</span><br><span class="line">	uint a;</span><br><span class="line">	address owner;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">constructor</span> () public &#123;</span><br><span class="line">		owner = msg.sender;</span><br><span class="line">		a = <span class="number">10</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">getA</span>(<span class="params"></span>) <span class="title">public</span> <span class="title">returns</span> (<span class="params">uint</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> a;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">setA</span>(<span class="params">uint x</span>) <span class="title">public</span> </span>&#123;</span><br><span class="line">		a = x;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>部署脚本：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Store = artifacts.require(<span class="string">"Store"</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">deployer</span>) </span>&#123;</span><br><span class="line">  deployer.deploy(Store);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="3-truffle-config-js"><a href="#3-truffle-config-js" class="headerlink" title="3.truffle-config.js"></a>3.truffle-config.js</h3><p>修改配置文件truffle-config.js，在networks中将如下部分的注释去掉:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">45</span>      development: &#123;</span><br><span class="line"><span class="number">46</span>       host: <span class="string">"127.0.0.1"</span>,     <span class="comment">// Localhost (default: none)</span></span><br><span class="line"><span class="number">47</span>       port: <span class="number">8545</span>,            <span class="comment">// Standard Ethereum port (default: none)</span></span><br><span class="line"><span class="number">48</span>       network_id: <span class="string">"*"</span>,       <span class="comment">// Any network (default: none)</span></span><br><span class="line"><span class="number">49</span>      &#125;,</span><br></pre></td></tr></table></figure>
+<p>然后在本地开启ganache-cli，未安装的直接npm install -g ganache-cli即可</p>
+<h3 id="4-Truffle-migrate"><a href="#4-Truffle-migrate" class="headerlink" title="4.Truffle migrate"></a>4.Truffle migrate</h3><p>完成以上步骤，直接truffle migrate就可以将我们的合约部署到本地测试网了，下面是truffle migrate背后的一系列步骤：</p>
+<ul>
+<li>如果没有事先编译合约，truffle migrate会先编译合约，你也可以在truffle migrate之前用truffle compile编译好合约</li>
+<li>按照migrations文件夹中的前缀数字编号顺序执行部署脚本，第一个部署的是Migrations.sol，第二个是Store.sol</li>
+<li>每执行完一个部署脚本，调用Migrations合约的setCompleted方法，将last_completed_migration值设为部署脚本编号</li>
+</ul>
+<p>所以，这里运行truffle migrate一共会产生4笔交易：</p>
+<ol>
+<li>Migrations.sol合约的部署</li>
+<li>调用setCompleted将last_completed_migration设为1</li>
+<li>Store.sol合约的部署</li>
+<li>调用setCompleted将last_completed_migration设为2</li>
+</ol>
+<h4 id="5-更新合约"><a href="#5-更新合约" class="headerlink" title="5.更新合约"></a>5.更新合约</h4><p>如果之后合约有更新，在migrations文件夹内加入新的部署脚本即可，注意文件名前缀数字需在当前的最大值上加1。然后直接truffle migrate，这时，truffle会从前缀编号为last_completed_migration + 1的脚本开始执行，如果你的项目包含了很多合约，这样只部署改动过的合约，避免了重复部署。</p>
+<p>如果只是想知道如何使用truffle，看到这里就ok了，如果还想了解更多，请继续往下看：</p>
+<p>上面说了，truffle会自动从编号为last_completed_migration + 1的脚本开始执行，那么问题来了，每次执行truffle migrate的时候truffle是怎么知道last_completed_migration的值的？两种可能：</p>
+<ol>
+<li>从链上获取，那这样truffle就必须知道Migrations.sol合约的地址</li>
+<li>保存在本地</li>
+</ol>
+<p>我起初以为是第一种可能，但是我在执行truffle migrate的时候发现ganache-cli的输出日志并没有显示有合约调用，而且，如果要从链上获取last_completed_migration的值，truffle必须知道合约的部署地址，那本地必定有地方保存了Migration合约的地址。</p>
+<p>一番查找之后，并未找到任何相关文件。这样一来，可能2也直接否定了。</p>
+<p>无奈，只能翻truffle源码，查找半天，没有找到和链交互的代码，但是看到了下面这段代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">326421</span> <span class="keyword">var</span> Networks = &#123;</span><br><span class="line"><span class="number">326422</span>   deployed: <span class="function"><span class="keyword">function</span>(<span class="params">options, callback</span>) </span>&#123;</span><br><span class="line"><span class="number">326423</span>     fs.readdir(options.contracts_build_directory, <span class="function"><span class="keyword">function</span>(<span class="params">err, files</span>) </span>&#123;</span><br><span class="line"><span class="number">326424</span>       <span class="keyword">if</span> (err) &#123;</span><br><span class="line"><span class="number">326425</span>         <span class="comment">// We can't read the directory. Act like we found nothing.</span></span><br><span class="line"><span class="number">326426</span>         files = [];</span><br><span class="line"><span class="number">326427</span>       &#125;</span><br><span class="line"><span class="number">326428</span></span><br><span class="line"><span class="number">326429</span>       <span class="keyword">var</span> promises = [];</span><br><span class="line"><span class="number">326430</span></span><br><span class="line"><span class="number">326431</span>       files.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">file</span>) </span>&#123;</span><br><span class="line"><span class="number">326432</span>         promises.push(<span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">accept, reject</span>) </span>&#123;</span><br><span class="line"><span class="number">326433</span>           fs.readFile(path.join(options.contracts_build_directory, file), <span class="string">"utf8"</span>, functi       on(err, body) &#123;</span><br><span class="line"><span class="number">326434</span>             <span class="keyword">if</span> (err) <span class="keyword">return</span> reject(err);</span><br><span class="line"><span class="number">326435</span></span><br><span class="line"><span class="number">326436</span>             <span class="keyword">try</span> &#123;</span><br><span class="line"><span class="number">326437</span>               body = <span class="built_in">JSON</span>.parse(body);</span><br><span class="line"><span class="number">326438</span>             &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line"><span class="number">326439</span>               <span class="keyword">return</span> reject(e);</span><br><span class="line"><span class="number">326440</span>             &#125;</span><br><span class="line"><span class="number">326441</span></span><br><span class="line"><span class="number">326442</span>             accept(body);</span><br><span class="line"><span class="number">326443</span>           &#125;);</span><br><span class="line"><span class="number">326444</span>         &#125;));</span><br><span class="line">......</span><br><span class="line"><span class="number">326467</span>         binaries.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">json</span>) </span>&#123;</span><br><span class="line"><span class="number">326468</span>           <span class="built_in">Object</span>.keys(json.networks).forEach(<span class="function"><span class="keyword">function</span>(<span class="params">network_id</span>) </span>&#123;</span><br><span class="line"><span class="number">326469</span>             <span class="keyword">var</span> network_name = ids_to_names[network_id] || network_id;</span><br><span class="line"><span class="number">326470</span></span><br><span class="line"><span class="number">326471</span>             <span class="keyword">if</span> (networks[network_name] == <span class="literal">null</span>) &#123;</span><br><span class="line"><span class="number">326472</span>               networks[network_name] = &#123;&#125;;</span><br><span class="line"><span class="number">326473</span>             &#125;</span><br><span class="line"><span class="number">326474</span></span><br><span class="line"><span class="number">326475</span>             <span class="keyword">var</span> address = json.networks[network_id].address;</span><br><span class="line"><span class="number">326476</span></span><br><span class="line"><span class="number">326477</span>             <span class="keyword">if</span> (address == <span class="literal">null</span>) <span class="keyword">return</span>;</span><br><span class="line"><span class="number">326478</span></span><br><span class="line"><span class="number">326479</span>             networks[network_name][json.contractName] = address;</span><br><span class="line"><span class="number">326480</span>           &#125;);</span><br><span class="line"><span class="number">326481</span>         &#125;);</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+<p>看到这里才发现truffle还有一个networks命令，truffle networks可以显示当前所有合约的链上地址。结合326433行和326479行，确定地址是从文件里读取的，326433行表明是从build文件夹里读取的，之前一直以为build文件夹里面的json文件就只是合约编译输出的ABI信息，所以一直没注意，绕了这么一大圈。</p>
+<p>打开Store.json，发现了一个networks字段，保存了合约的部署信息：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">908   "networks": &#123;</span><br><span class="line">909     "1551517567987": &#123;</span><br><span class="line">910       "events": &#123;&#125;,</span><br><span class="line">911       "links": &#123;&#125;,</span><br><span class="line">912       "address": "0xdc18E55D691869b5295027C1B4B861d54B495E81",</span><br><span class="line">913       "transactionHash": "0x627ba390efd246dd7553b237395f413ada96292fa4a764c28d504c96033d3e12"</span><br><span class="line">914     &#125;</span><br><span class="line">915   &#125;,</span><br></pre></td></tr></table></figure>
+<p>终于，破案~</p>
+<p>那现在问题又来了，既然本地都保存了合约部署的信息，干嘛还要在链上部署一个Migration合约呢？每次执行部署脚本的时候检查一下对应合约编译结果的networks字段不就ok了？如果为空就重新部署，如果不空就不重新部署了嘛</p>
+<p>试一试</p>
+<p>删掉Store.json里的networks字段内容，现在networks字段为空，再执行truffle migrate，输出：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Compiling your contracts<span class="built_in">..</span>.</span><br><span class="line">===========================</span><br><span class="line">&gt; Everything is up <span class="keyword">to</span> date, there is <span class="literal">nothing</span> <span class="keyword">to</span> compile.</span><br><span class="line"></span><br><span class="line">Network up <span class="keyword">to</span> date.</span><br></pre></td></tr></table></figure>
+<p>然后ganache-cli输出日志有合约调用记录，看来还不是上面说的那么简单，部署的时候先检查本地json文件的networks字段，然后再检查链上合约里的last_completed_migration字段。</p>
+<p>现在，可以更全面地理一下truffle migrate背后的流程了（此时假设Migration合约已经部署）：</p>
+<ul>
+<li>如果没有编译合约，首先编译合约，输出json文件放入build文件夹</li>
+<li>从migrations文件夹中第一个部署脚本开始，检查对应合约的编译输出json文件<ul>
+<li>如果networks字段不为空，不执行此脚本，开始执行下一个脚本</li>
+<li>如果networks字段为空，到链上查询last_completed_migration<ul>
+<li>如果此值大于部署脚本前缀，说明之前已经部署过对应合约，跳过</li>
+<li>如果此值小于部署脚本前缀数字，说明还未部署对应得合约，执行部署合约操作，然后调用Migration的setCompleted方法将last_completed_migration字段值设为此脚本前缀数字，并将合约部署信息写入到对应合约json文件的networks字段</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>最后说一句，默认的Migration合约其实并非必要，完全可以每次直接:</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">truffle migrate <span class="comment">--reset</span></span><br></pre></td></tr></table></figure>
+<p>重新部署所有合约</p>
+<p>但是这两种做法各有利弊：</p>
+<ul>
+<li>如果你的项目只有一两个合约，为了部署这几个合约还要部署一个Migration合约，每次部署完自己的合约还要调用Migration合约，要多消耗不少手续费，这种情况每次重新部署比较划算</li>
+<li>如果你的项目有很多合约，每次重新部署所有合约的代价高于了维护一个Migration合约的成本，那还是最好选择使用Migration合约</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://ccyan.xyz/2019/03/02/truffle-migrate/" data-id="cjsrjdsv4001jefpu18b3bzv0" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Blockchain/">Blockchain</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ethereum/">Ethereum</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/02/20/RTX2080-vs-Tesla-K40/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">RTX2080 vs Tesla K40</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Blockchain/">Blockchain</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Deep-learning/">Deep learning</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Reading/">Reading</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Things/">Things</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/BP/">BP</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Blockchain/">Blockchain</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ethereum/">Ethereum</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GPU/">GPU</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RNN/">RNN</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/deep-learning/">deep learning</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/shell/">shell</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/BP/" style="font-size: 10px;">BP</a> <a href="/tags/Blockchain/" style="font-size: 16.67px;">Blockchain</a> <a href="/tags/Ethereum/" style="font-size: 16.67px;">Ethereum</a> <a href="/tags/GPU/" style="font-size: 10px;">GPU</a> <a href="/tags/RNN/" style="font-size: 13.33px;">RNN</a> <a href="/tags/deep-learning/" style="font-size: 20px;">deep learning</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/03/02/truffle-migrate/">truffle migrate</a>
+          </li>
+        
+          <li>
+            <a href="/2019/02/20/RTX2080-vs-Tesla-K40/">RTX2080 vs Tesla K40</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/23/Ethereum-MPT/">Ethereum MPT</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/23/Ethereum笔记/">Ethereum 笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2018/09/06/BPTT实现/">BPTT实现</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 Cyan<br>
+  <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <span id="busuanzi_container_site_uv"> 
+     Visitors: <span id="busuanzi_value_site_uv"></span><br>
+    </span>
+
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a><br>
+
+    </div>
+  </div>
+   
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?a93a3e2bd8cb33f503f8d3e214373a89";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
