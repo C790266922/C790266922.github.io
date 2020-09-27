@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="utf-8">
   
 
@@ -20,7 +20,7 @@
 <meta name="twitter:title" content="truffle migrate">
 <meta name="twitter:description" content="truffle migrate做了什么？">
   
-    <link rel="alternate" href="/atom.xml" title="" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title type="application/atom+xml">
   
   
     <link rel="icon" href="/logo.jpg">
@@ -30,7 +30,7 @@
   
   <link rel="stylesheet" href="/css/style.css">
 </head>
-
+</html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -98,12 +98,12 @@
 <p>Truffle 是目前以太坊合约开发中最常用的框架，写好合约、部署脚本和配置文件，一句truffle migrate就能够直接完成合约部署，但是truffle migrate背后发生了什么？为什么部署脚本都是数字开头？今天细看了一下，解决了这些疑惑，记录一下</p>
 <p>先简单说说truffle的使用</p>
 <h3 id="1-Truffle-init"><a href="#1-Truffle-init" class="headerlink" title="1.Truffle init"></a>1.Truffle init</h3><p>Truffle init会将当前文件夹初始化为一个Truffle项目文件夹，结构如下：</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── contracts</span><br><span class="line">│   └── Migrations.sol</span><br><span class="line">├── migrations</span><br><span class="line">│   └── <span class="number">1</span>_initial_migration.js</span><br><span class="line">├── test</span><br><span class="line">└── truffle-config.js</span><br></pre></td></tr></table></figure>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── <span class="selector-tag">contracts</span></span><br><span class="line">│   └── <span class="selector-tag">Migrations</span><span class="selector-class">.sol</span></span><br><span class="line">├── <span class="selector-tag">migrations</span></span><br><span class="line">│   └── 1_<span class="selector-tag">initial_migration</span><span class="selector-class">.js</span></span><br><span class="line">├── <span class="selector-tag">test</span></span><br><span class="line">└── <span class="selector-tag">truffle-config</span><span class="selector-class">.js</span></span><br></pre></td></tr></table></figure>
 <p>其中Migrations.sol用于记录当前执行到了第几个部署脚本，1_initial_migration.js是Migrations.sol的部署脚本。Migrations.sol内容如下：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity &gt;=<span class="number">0.4</span><span class="number">.21</span> &lt;<span class="number">0.6</span><span class="number">.0</span>;</span><br><span class="line"></span><br><span class="line">contract Migrations &#123;</span><br><span class="line">  address public owner;</span><br><span class="line">  uint public last_completed_migration;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() public &#123;</span><br><span class="line">    owner = msg.sender;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  modifier restricted() &#123;</span><br><span class="line">    <span class="keyword">if</span> (msg.sender == owner) _;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">setCompleted</span>(<span class="params">uint completed</span>) <span class="title">public</span> <span class="title">restricted</span> </span>&#123;</span><br><span class="line">    last_completed_migration = completed;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">upgrade</span>(<span class="params">address new_address</span>) <span class="title">public</span> <span class="title">restricted</span> </span>&#123;</span><br><span class="line">    Migrations upgraded = Migrations(new_address);</span><br><span class="line">    upgraded.setCompleted(last_completed_migration);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>主要字段为last_completed_migration，记录了上一个执行完成的部署脚本的编号。truffle migrate时会执行migrations文件夹下的部署脚本，每执行完一个部署脚本之后都会调用Migrations.sol合约的setCompleted方法，将last_completed_migration更新为部署脚本开头的数字。</p>
 <h3 id="2-编写自己的合约"><a href="#2-编写自己的合约" class="headerlink" title="2.编写自己的合约"></a>2.编写自己的合约</h3><p>现在我们写一个简单的合约Store.sol，然后加入对应得部署脚本，现在文件夹结构如下：</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── contracts</span><br><span class="line">│   ├── Migrations.sol</span><br><span class="line">│   └── Store.sol</span><br><span class="line">├── migrations</span><br><span class="line">│   ├── <span class="number">1</span>_initial_migration.js</span><br><span class="line">│   └── <span class="number">2</span>_depoly_store.js</span><br><span class="line">├── test</span><br><span class="line">└── truffle-config.js</span><br></pre></td></tr></table></figure>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── <span class="selector-tag">contracts</span></span><br><span class="line">│   ├── <span class="selector-tag">Migrations</span><span class="selector-class">.sol</span></span><br><span class="line">│   └── <span class="selector-tag">Store</span><span class="selector-class">.sol</span></span><br><span class="line">├── <span class="selector-tag">migrations</span></span><br><span class="line">│   ├── 1_<span class="selector-tag">initial_migration</span><span class="selector-class">.js</span></span><br><span class="line">│   └── 2_<span class="selector-tag">depoly_store</span><span class="selector-class">.js</span></span><br><span class="line">├── <span class="selector-tag">test</span></span><br><span class="line">└── <span class="selector-tag">truffle-config</span><span class="selector-class">.js</span></span><br></pre></td></tr></table></figure>
 <p>合约内容：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity &gt;=<span class="number">0.4</span><span class="number">.21</span> &lt;<span class="number">0.6</span><span class="number">.0</span>;</span><br><span class="line"></span><br><span class="line">contract Store &#123;</span><br><span class="line">	uint a;</span><br><span class="line">	address owner;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">constructor</span> () public &#123;</span><br><span class="line">		owner = msg.sender;</span><br><span class="line">		a = <span class="number">10</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">getA</span>(<span class="params"></span>) <span class="title">public</span> <span class="title">returns</span> (<span class="params">uint</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> a;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">setA</span>(<span class="params">uint x</span>) <span class="title">public</span> </span>&#123;</span><br><span class="line">		a = x;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>部署脚本：</p>
@@ -169,7 +169,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://ccyan.xyz/2019/03/02/truffle-migrate/" data-id="ck2j3ra2f001ohwpuuros0top" class="article-share-link">Share</a>
+      <a data-url="http://ccyan.xyz/2019/03/02/truffle-migrate/" data-id="ckfl2be2n000ndwduszucauqq" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Blockchain/">Blockchain</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ethereum/">Ethereum</a></li></ul>
@@ -229,7 +229,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/BP/" style="font-size: 10px;">BP</a> <a href="/tags/Bitcoin/" style="font-size: 10px;">Bitcoin</a> <a href="/tags/Blockchain/" style="font-size: 20px;">Blockchain</a> <a href="/tags/Ethereum/" style="font-size: 16.67px;">Ethereum</a> <a href="/tags/GPU/" style="font-size: 10px;">GPU</a> <a href="/tags/RNN/" style="font-size: 13.33px;">RNN</a> <a href="/tags/deep-learning/" style="font-size: 20px;">deep learning</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a>
+      <a href="/tags/BP/" style="font-size: 10px;">BP</a> <a href="/tags/Bitcoin/" style="font-size: 10px;">Bitcoin</a> <a href="/tags/Blockchain/" style="font-size: 20px;">Blockchain</a> <a href="/tags/Ethereum/" style="font-size: 15px;">Ethereum</a> <a href="/tags/GPU/" style="font-size: 10px;">GPU</a> <a href="/tags/RNN/" style="font-size: 12.5px;">RNN</a> <a href="/tags/deep-learning/" style="font-size: 17.5px;">deep learning</a> <a href="/tags/shell/" style="font-size: 10px;">shell</a>
     </div>
   </div>
 
@@ -238,7 +238,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li></ul>
     </div>
   </div>
 
@@ -249,6 +249,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/09/27/Uniswap-Arbitrage-Analysis/">Uniswap Arbitrage Analysis</a>
+          </li>
         
           <li>
             <a href="/2019/11/03/bitcoin-puzzle-transaction/">Bitcoin puzzle transaction</a>
@@ -266,10 +270,6 @@
             <a href="/2018/11/23/Ethereum-MPT/">Ethereum MPT</a>
           </li>
         
-          <li>
-            <a href="/2018/11/23/Ethereum笔记/">Ethereum 笔记</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -282,7 +282,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Cyan<br>
+      &copy; 2020 Cyan<br>
   <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <span id="busuanzi_container_site_uv"> 
      Visitors: <span id="busuanzi_value_site_uv"></span><br>
